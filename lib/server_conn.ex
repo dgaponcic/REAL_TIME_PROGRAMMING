@@ -1,15 +1,17 @@
 defmodule ServerConn do
-    def get_tweet() do
+
+    def getTweet() do
         receive do
             tweet ->
-                Manager.manage(tweet)
-                get_tweet()
+                Router.route(tweet)
+                getTweet()
         end
     end
 
-    def init() do
+    def start() do
+        IO.puts("starting server conn")
         EventsourceEx.new("localhost:4000/tweets/1", stream_to: self())
-        get_tweet()
+        getTweet()
     end
 
 end
