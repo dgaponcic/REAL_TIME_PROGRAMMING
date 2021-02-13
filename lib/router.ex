@@ -7,10 +7,9 @@ defmodule Router do
             :Worker0,
             :Worker1,
             :Worker2,
-            :Worker3,
-            :Worker4,
         ]
 
+        IO.puts("starting router")
         GenServer.start_link(__MODULE__, %{index: 0, children: children}, name: __MODULE__)
     end
 

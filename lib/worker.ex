@@ -1,7 +1,7 @@
 defmodule Worker do
     use GenServer
 
-    def start(index) do
+    def start_link(index) do
         IO.puts("starting worker#{index}")
         GenServer.start_link(__MODULE__, :ok, [name: :"Worker#{index}"])
     end
@@ -17,6 +17,7 @@ defmodule Worker do
     end
 
     def print(tweet, true) do
+        IO.inspect("panic")
         Process.exit(self(), :kill)
     end
 
