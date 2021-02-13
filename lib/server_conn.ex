@@ -5,17 +5,18 @@ defmodule ServerConn do
             tweet -> 
                 # IO.inspect("new_ tweet")
                 # GenServer.cast(:Router, {:route, tweet})
+                Router.route(tweet)
         end
         getTweet()
     end
 
 
-    def start_link() do
+    def start_link(url) do
         IO.puts("starting server conn")
         handle = spawn_link(__MODULE__, :getTweet, [])
-        {:ok, old_pid} = EventsourceEx.new("http://localhost:4000/tweets/2", stream_to: handle)
+        {:ok, old_pid} = EventsourceEx.new(url, stream_to: handle)
 
-        spawn_link(__MODULE__, :checkConnection, ["http://localhost:4000/tweets/2", handle, old_pid])
+        spawn_link(__MODULE__, :checkConnection, [url, handle, old_pid])
         {:ok, self()}
     end
 

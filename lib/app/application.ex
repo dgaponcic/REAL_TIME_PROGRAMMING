@@ -3,13 +3,13 @@ defmodule App.Application do
   
   @impl true
   def start(_type, _args) do
+    url1 = "http://localhost:4000/tweets/1"
+    url2 = "http://localhost:4000/tweets/2"
 
     children = [
-      # {Registry, keys: :unique, name: GreeterRegistry},
-
       %{
         id: WorkerSupervisor,
-        start: {WorkerSupervisor, :start, []}
+        start: {WorkerSupervisor, :start, []},
       },
 
       %{
@@ -18,12 +18,17 @@ defmodule App.Application do
       }, 
 
       %{
-        id: ServerConn,
-        start: {ServerConn, :start, []}
+        id: ServerConn1,
+        start: {ServerConn, :start_link, [url1]},
+      },
+
+      %{
+        id: ServerConn2,
+        start: {ServerConn, :start_link, [url2]},
       },
     ]
 
-    opts = [strategy: :one_for_one, name: App.Supervisor]
+    opts = [strategy: :one_for_one, max_restarts: 100, name: App.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end
