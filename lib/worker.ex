@@ -3,7 +3,11 @@ defmodule Worker do
 
     def start_link(index) do
         IO.puts("starting worker#{index}")
-        GenServer.start_link(__MODULE__, :ok, [name: :"Worker#{index}"])
+        
+        {:ok, pid} = GenServer.start_link(__MODULE__, :ok, [name: :"Worker#{index}"])
+        Registry.register(Registry.ViaTest, "Worker" <> Integer.to_string(index), pid)
+        # IO.inspect(pid)
+        {:ok, pid}
     end
 
     def handle_tweet(tweet) do
