@@ -27,7 +27,7 @@ defmodule AutoScaler do
 
     def handle_info(:work, state) do
         
-        desired_nb_workers = div(state.counter, 15)
+        desired_nb_workers = 1 + div(state.counter, 15)
         IO.inspect(desired_nb_workers)
         actual_nb_workers = WorkerSupervisor.get_nb_children()
         IO.inspect(actual_nb_workers)
