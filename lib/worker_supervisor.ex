@@ -30,15 +30,16 @@ defmodule WorkerSupervisor do
     def stop_child(n) do
         IO.puts("terminating worker")
         index = get_nb_children() - 1
+
         {_, child_pid} = Registry.lookup(Registry.ViaTest, "Worker" <> Integer.to_string(index))
         |> Enum.take(-1)
         |> Enum.at(0)
-        res = DynamicSupervisor.terminate_child(__MODULE__, child_pid)
+
+        DynamicSupervisor.terminate_child(__MODULE__, child_pid)
         stop_child(n - 1)
     end
 
-
-
+    
     @impl true
     def init(_init_arg) do
         DynamicSupervisor.init(max_restarts: 100, strategy: :one_for_one)

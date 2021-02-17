@@ -1,34 +1,28 @@
 defmodule Router do
     use GenServer
 
-    def start() do
-
-        children = [
-            :Worker0,
-            :Worker1,
-            :Worker2,
-        ]
-
+    def start_link() do
         IO.puts("starting router")
-        GenServer.start_link(__MODULE__, %{index: 0, children: children}, name: __MODULE__)
+        GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
     end
 
     def route(tweet) do
+        TopHashtags.rcv_data(tweet.data)
         GenServer.cast(__MODULE__, {:route, tweet.data})
     end
 
 
     @impl true
-    def init(state) do
-        {:ok, state}
+    def init(_state) do
+        {:ok, %{index: 0, total_workers: WorkerSupervisor.get_nb_children()}}
     end
 
     @impl true
     def handle_cast({:route, tweet}, state) do
-        Enum.at(state.children, rem(state.index, 5))
+        String.to_atom("Worker" <> Integer.to_string(rem(state.index, state.total_workers)))
         |> GenServer.cast({:print, tweet})
 
-        {:noreply,  %{index: state.index + 1, children: state.children}}
+        {:noreply,  %{index: state.index + 1, total_workers: WorkerSupervisor.get_nb_children()}}
     end
 
 end

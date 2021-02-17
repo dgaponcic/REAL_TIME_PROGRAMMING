@@ -1,33 +1,32 @@
 defmodule ServerConn do
-    
-    def getTweet() do
+     
+    def get_tweet() do
         receive do
             tweet -> 
-                # IO.inspect("new_ tweet")
-                # GenServer.cast(:Router, {:route, tweet})
+                AutoScaler.rcv_data(tweet)
                 Router.route(tweet)
         end
-        getTweet()
+        get_tweet()
     end
 
 
     def start_link(url) do
         IO.puts("starting server conn")
-        handle = spawn_link(__MODULE__, :getTweet, [])
+        handle = spawn_link(__MODULE__, :get_tweet, [])
         {:ok, old_pid} = EventsourceEx.new(url, stream_to: handle)
 
-        spawn_link(__MODULE__, :checkConnection, [url, handle, old_pid])
+        spawn_link(__MODULE__, :check_connection, [url, handle, old_pid])
         {:ok, self()}
     end
 
-    def checkConnection(url, handle, pid) do
+
+    def check_connection(url, handle, pid) do
         Process.monitor(pid)
         receive do
             err ->
                 IO.puts("restarting")
                 {ok, new_pid} = EventsourceEx.new(url, stream_to: handle)
-                checkConnection(url, handle, new_pid)
-
+                check_connection(url, handle, new_pid)
         end
     end
 end
