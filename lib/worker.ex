@@ -6,7 +6,6 @@ defmodule Worker do
         
         {:ok, pid} = GenServer.start_link(__MODULE__, :ok, [name: :"Worker#{index}"])
         Registry.register(Registry.ViaTest, "Worker" <> Integer.to_string(index), pid)
-        # IO.inspect(pid)
         {:ok, pid}
     end
 
@@ -26,11 +25,22 @@ defmodule Worker do
     end
 
     def print(tweet, false) do
-        IO.puts(tweet)
+        {:ok, tweet} = Poison.decode(tweet)
+        hashtags = tweet["message"]["tweet"]["entities"]["hashtags"]
+        
+        words = tweet["message"]["tweet"]["text"]
+        |> String.split(" ", trim: true)
+
+        score = words
+        |> Enum.reduce(0, fn word, acc -> Sentiments.get_value(word) + acc end)
+        |> Kernel./(length(words))
+        IO.inspect(score)
+        
     end
 
     @impl true
     def handle_cast({:print, tweet}, _) do
+        :timer.sleep(Enum.random(0..50))
         {:noreply, print(tweet, tweet =~ "panic")}
     end
 
