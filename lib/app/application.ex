@@ -8,23 +8,23 @@ defmodule App.Application do
 
         children = [
             %{
-              	id: Registry,
-              	start: {Registry, :start_link, [:duplicate, Registry.ViaTest]}
+                id: Registry,
+                start: {Registry, :start_link, [:duplicate, Registry.ViaTest]}
             },
 
             %{
-				id: AutoScaler,
-				start: {AutoScaler, :start_link, []}
+                id: AutoScaler,
+                start: {AutoScaler, :start_link, []}
             },
 
             %{
-				id: WorkerSupervisor,
-				start: {WorkerSupervisor, :start_link, []},
+                id: WorkerSupervisor,
+                start: {WorkerSupervisor, :start_link, []},
             },
 
             %{
-			    id: Router,
-				start: {Router, :start_link, []}
+                id: Router,
+                start: {Router, :start_link, []}
             }, 
 
             %{
