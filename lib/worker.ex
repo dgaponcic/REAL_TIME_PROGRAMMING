@@ -52,7 +52,7 @@ defmodule Worker do
 
 
     def handle_cast({:print, tweet}, state) do
-        :timer.sleep(Enum.random(0..100))
+        :timer.sleep(Enum.random(0..50))
         print(tweet, tweet =~ "panic", state.index)
         {:noreply, state}
     end
