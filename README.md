@@ -11,19 +11,16 @@ The task is as follows:
 * To continue running the system you will have to have a supervisor/restart policy for the workers.
 * The worker actors also must have a random sleep, in the range of 50ms to 500ms, normally distributed. This is necessary to make the system behave more like a real one + give the router/load balancer a bit of a hard time + for the optional speculative execution. The output will be shown as log messages.
 
-Some optional tasks:
-
-* Speculative execution of slow tasks, for some details check the recording of the first lesson
-* "Least connected" load balancing, or even more advanced, check for some examples (not directly related): https://blog.envoyproxy.io/examining-load-balancing-algorithms-with-envoy-1be643ea121c
-* Have a metrics endpoint to monitor the stats on ingested messages, average execution time, 75th, 90th, 95th percentile execution time, number of crashes per given time window, etc
-* Anything else, like the most popular hashtag up until now, or maybe other analytics
-
 ## Implementation
-TODO
+Optional tasks:
+* Implemented count min sketch and used it to find top 10 hashtags(updated every second)
+* Least Connected routing
 
 ## Run
-
+start docker image on port 4000
 ```
 mix deps.get
 mix run --no-halt
 ```
+## Demo
+![Alt Text](https://github.com/dgaponcic/REAL_TIME_PROGRAMMING/blob/main/app_demo.gif)
