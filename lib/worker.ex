@@ -24,14 +24,7 @@ defmodule Worker do
     end
 
 
-    defp print(_tweet, true, index) do
-        IO.inspect("panic")
-        Router.task_done(index)
-        Process.exit(self(), :kill)
-    end
-
-
-    defp print(tweet, false, index) do
+    defp print(tweet, index) do
         {:ok, tweet} = Poison.decode(tweet)
         
         score = tweet
@@ -55,7 +48,8 @@ defmodule Worker do
 
     def handle_cast({:print, tweet}, state) do
         :timer.sleep(Enum.random(0..50))
-        print(tweet, tweet =~ "panic", state.index)
+        print(tweet, state.index)
+
         {:noreply, state}
     end
 end
