@@ -1,7 +1,5 @@
 defmodule Sentiments do
-
     def get_value(word) do
-
         sent_values = %{
             abandon: -2,
             abandoned: -2,
@@ -2461,5 +2459,4 @@ defmodule Sentiments do
 
         Map.get(sent_values, String.to_atom(word), 0)
     end
-
 end

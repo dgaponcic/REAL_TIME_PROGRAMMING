@@ -6,44 +6,20 @@ defmodule TopHashtags do
     end
 
 
-    def rcv_data(tweet, false) do
+    defp rcv_data(tweet, false) do
         {:ok, tweet} = Poison.decode(tweet)
         tweet["message"]["tweet"]["entities"]["hashtags"]
         |> Enum.each(fn hashtag -> GenServer.cast(__MODULE__, {:hashtag, hashtag["text"]}) end)
     end
 
-    def rcv_data(tweet, true) do 
+
+    defp rcv_data(_tweet, true) do 
 
     end
+
 
     def rcv_data(tweet) do
         rcv_data(tweet, tweet =~ "panic")
-    end
-
-
-    def init(_state) do
-        schedule_work()
-        sketch = CountMinSketch.new(10, 15)
-        popular_hashtags = ["health", "beauty", "football", "America", "China", "burger", "life", "sport", "movie", "wine"]
-        new_sketch = popular_hashtags
-        |> Enum.reduce(sketch, fn hashtag, acc -> CountMinSketch.add2sketch(acc, hashtag) end) 
-
-        top = popular_hashtags
-        |> Enum.map(fn hashtag -> %{hashtag: hashtag, score: 1} end)
-
-        {:ok, %{sketch: new_sketch, top: top}}
-    end
-
-
-    def handle_cast({:hashtag, hashtag}, state) do
-
-        new_sketch = CountMinSketch.add2sketch(state.sketch, hashtag)
-        score = CountMinSketch.get(state.sketch, hashtag)
-        
-        top = (List.last(state.top).score < score)
-        |> update_top(hashtag, state.top, score)
-
-        {:noreply, %{sketch: new_sketch, top: top}}
     end
 
     def update_top_hashtag(head, [], val, score) do
@@ -67,12 +43,46 @@ defmodule TopHashtags do
 
 
     def update_top(true, val, top, score) do
-        {head, tail} = Enum.split_while(top, fn hashtag -> hashtag.hashtag != val end))
+        {head, tail} = Enum.split_while(top, fn hashtag -> hashtag.hashtag != val end)
         update_top_hashtag(head, tail, val ,score)
     end
 
+
     def update_top(false, _val, top, _score) do
         top
+    end
+
+
+    defp create_sketch(popular_hashtags) do
+        rows = 10
+        columns = 15
+        sketch = CountMinSketch.new(rows, columns)
+        
+        popular_hashtags
+        |> Enum.reduce(sketch, fn hashtag, acc -> CountMinSketch.add2sketch(acc, hashtag) end) 
+    end
+
+
+    def init(_state) do
+        schedule_work()
+
+        popular_hashtags = ["health", "beauty", "football", "America", "China", "burger", "life", "sport", "movie", "wine"]
+        sketch = create_sketch(popular_hashtags)
+        top = popular_hashtags
+        |> Enum.map(fn hashtag -> %{hashtag: hashtag, score: 1} end)
+
+        {:ok, %{sketch: sketch, top: top}}
+    end
+
+
+    def handle_cast({:hashtag, hashtag}, state) do
+        new_sketch = CountMinSketch.add2sketch(state.sketch, hashtag)
+        score = CountMinSketch.get(state.sketch, hashtag)
+        
+        top = (List.last(state.top).score < score)
+        |> update_top(hashtag, state.top, score)
+
+        {:noreply, %{sketch: new_sketch, top: top}}
     end
 
 
@@ -80,11 +90,11 @@ defmodule TopHashtags do
         IO.inspect(state.top)
         schedule_work()
         {:noreply, state}
-      end
+    end
+
 
     defp schedule_work() do
         interval = 1000
         Process.send_after(self(), :work, interval)
     end
-
 end

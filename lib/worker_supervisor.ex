@@ -2,9 +2,9 @@ defmodule WorkerSupervisor do
     use DynamicSupervisor
 
     def start_link() do
-        res = DynamicSupervisor.start_link(__MODULE__, :ok, name: __MODULE__)
+        supervisor = DynamicSupervisor.start_link(__MODULE__, :ok, name: __MODULE__)
         WorkerSupervisor.start_child(4)
-        res
+        supervisor
     end
 
     def get_nb_children() do
@@ -18,7 +18,7 @@ defmodule WorkerSupervisor do
 
     def start_child(n) do
         index = DynamicSupervisor.count_children(__MODULE__).active
-        {:ok, pid} = DynamicSupervisor.start_child(__MODULE__, {Worker, index})
+        DynamicSupervisor.start_child(__MODULE__, {Worker, index})
 
         start_child(n - 1)
     end
@@ -27,22 +27,27 @@ defmodule WorkerSupervisor do
 
     end
 
+
     def stop_child(n) do
         IO.puts("terminating worker")
         index = get_nb_children() - 1
+        child_pid = get_child_pid("Worker" <> Integer.to_string(index))
+        DynamicSupervisor.terminate_child(__MODULE__, child_pid)
 
-        {_, child_pid} = Registry.lookup(Registry.ViaTest, "Worker" <> Integer.to_string(index))
+        stop_child(n - 1)
+    end
+    
+
+    defp get_child_pid(name) do
+        {_, child_pid} = Registry.lookup(Registry.ViaTest, name)
         |> Enum.take(-1)
         |> Enum.at(0)
 
-        DynamicSupervisor.terminate_child(__MODULE__, child_pid)
-        stop_child(n - 1)
+        child_pid
     end
 
-    
-    @impl true
-    def init(_init_arg) do
+
+    def init(_) do
         DynamicSupervisor.init(max_restarts: 100, strategy: :one_for_one)
     end
-
 end
