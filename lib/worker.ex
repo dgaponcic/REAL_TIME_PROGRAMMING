@@ -17,7 +17,9 @@ defmodule Worker do
     end
 
     def get_words(tweet) do
+        punctuation = [",", ".", ":", "?", "!"]
         tweet["message"]["tweet"]["text"]
+        |> String.replace(punctuation, "")
         |> String.split(" ", trim: true)
     end
 
