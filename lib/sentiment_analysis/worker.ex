@@ -31,7 +31,7 @@ defmodule SentimentAnalysis.Worker do
         |> get_words()
         |> get_score()
 
-        IO.inspect(score)
+        IO.inspect("Sentiment score: " <> Float.to_string(score))
         Router.task_done({index, "WorkerSentiment"})
     end
 

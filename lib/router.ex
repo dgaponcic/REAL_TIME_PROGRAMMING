@@ -34,10 +34,15 @@ defmodule Router do
     def init(_state) do
         range_sentiment = 0..SentimentAnalysis.Supervisor.get_nb_children() - 1
         active_sentiment_tasks = define_active_tasks(range_sentiment, "WorkerSentiment")
+
+        range_engagement = 0..EngagementAnalysis.Supervisor.get_nb_children() - 1
+        active_engagement_tasks = define_active_tasks(range_sentiment, "WorkerEngagement")
         {:ok, 
             %{
                 active_sentiment_tasks: active_sentiment_tasks, 
-                total_sentiment_workers: SentimentAnalysis.Supervisor.get_nb_children()
+                total_sentiment_workers: SentimentAnalysis.Supervisor.get_nb_children(),
+                active_engagement_tasks: active_engagement_tasks, 
+                total_engagement_workers: EngagementAnalysis.Supervisor.get_nb_children()
             }
         }
     end
@@ -84,13 +89,30 @@ defmodule Router do
         %{
             active_sentiment_tasks: active_tasks, 
             total_sentiment_workers: state.total_sentiment_workers,
+            active_engagement_tasks: state.active_engagement_tasks, 
+            total_engagement_workers: state.total_engagement_workers
         }
     end
+
+
+    def task_done("WorkerEngagement", index, state) do
+        worker = Enum.at(state.active_engagement_tasks, index)
+        active_tasks = update_value_tasks(state.active_engagement_tasks, index, worker, &(&1 - 1))
+        
+        %{
+            active_sentiment_tasks: state.active_sentiment_tasks, 
+            total_sentiment_workers: state.total_sentiment_workers,
+            active_engagement_tasks: active_tasks, 
+            total_engagement_workers: state.total_engagement_workers
+        }
+    end
+
 
     def handle_cast({:task_done, {index, type}}, state) do
         new_state = task_done(type, index, state)
         {:noreply, new_state}
     end
+
 
     def delegate_task(active_tasks, tweet) do
         worker = choose_worker(active_tasks)
@@ -100,6 +122,7 @@ defmodule Router do
         GenServer.cast(worker.name, {:print, tweet})
         active_tasks
     end
+
 
     def route2sentiment_worker(state, tweet) do
         active_tasks = delegate_task(state.active_sentiment_tasks, tweet)
@@ -111,12 +134,26 @@ defmodule Router do
     end
 
 
+    def route2engagement_worker(state, tweet) do
+        active_tasks = delegate_task(state.active_engagement_tasks, tweet)
+        new_workers = EngagementAnalysis.Supervisor.get_nb_children()
+        old_workers = state.total_engagement_workers
+        active_tasks = update_active_tasks(old_workers, new_workers, active_tasks, "WorkerEngagement")
+
+        {active_tasks, new_workers}
+    end
+
+
     def handle_cast({:route, tweet}, state) do
         {active_sentiment_tasks, new_sentiment_workers} = route2sentiment_worker(state, tweet)
+        {active_engagement_tasks, new_engagement_workers} = route2engagement_worker(state, tweet)
+
         {:noreply,  
             %{
                 active_sentiment_tasks: active_sentiment_tasks, 
-                total_sentiment_workers: new_sentiment_workers
+                total_sentiment_workers: new_sentiment_workers,
+                active_engagement_tasks: active_engagement_tasks,
+                total_engagement_workers: new_engagement_workers
             }
         }
     end

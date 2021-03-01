@@ -20,6 +20,15 @@ defmodule AutoScaler do
         SentimentAnalysis.Supervisor.stop_child(count)
     end
 
+    def scale("Engagement", true, count) do
+        EngagementAnalysis.Supervisor.start_child(count)
+    end
+
+
+    def scale("Engagement", false, count) do
+        EngagementAnalysis.Supervisor.stop_child(count)
+    end
+
 
     def init(_state) do
         schedule_work()
@@ -33,7 +42,8 @@ defmodule AutoScaler do
 
         diff = abs(desired_nb_workers - actual_nb_workers)
         scale("Sentiment", desired_nb_workers > actual_nb_workers, diff)
-        
+        scale("Engagement", desired_nb_workers > actual_nb_workers, diff)
+
         schedule_work()
         {:noreply, %{counter: 0}}
       end
