@@ -87,7 +87,7 @@ defmodule TopHashtags do
 
 
     def handle_info(:work, state) do
-        IO.inspect(state.top)
+        # IO.inspect(state.top)
         schedule_work()
         {:noreply, state}
     end

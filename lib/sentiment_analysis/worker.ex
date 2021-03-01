@@ -1,11 +1,11 @@
-defmodule Worker do
+defmodule SentimentAnalysis.Worker do
     use GenServer
 
     def start_link(index) do
-        IO.puts("starting worker#{index}")
+        IO.puts("starting worker sentiment #{index}")
         
-        {:ok, pid} = GenServer.start_link(__MODULE__, %{index: index}, [name: :"Worker#{index}"])
-        Registry.register(Registry.ViaTest, "Worker" <> Integer.to_string(index), pid)
+        {:ok, pid} = GenServer.start_link(__MODULE__, %{index: index}, [name: :"WorkerSentiment#{index}"])
+        Registry.register(Registry.ViaTest, "WorkerSentiment" <> Integer.to_string(index), pid)
         {:ok, pid}
     end
 
@@ -32,7 +32,7 @@ defmodule Worker do
         |> get_score()
 
         IO.inspect(score)
-        Router.task_done(index)
+        Router.task_done({index, "WorkerSentiment"})
     end
 
 

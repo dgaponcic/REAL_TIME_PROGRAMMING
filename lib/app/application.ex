@@ -18,8 +18,13 @@ defmodule App.Application do
             },
 
             %{
-                id: WorkerSupervisor,
-                start: {WorkerSupervisor, :start_link, []},
+                id: SentimentAnalysis.Supervisor,
+                start: {SentimentAnalysis.Supervisor, :start_link, []},
+            },
+
+            %{
+                id: EngagementAnalysis.Supervisor,
+                start: {EngagementAnalysis.Supervisor, :start_link, []},
             },
 
             %{

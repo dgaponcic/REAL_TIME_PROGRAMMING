@@ -1,9 +1,9 @@
-defmodule WorkerSupervisor do
+defmodule EngagementAnalysis.Supervisor do
     use DynamicSupervisor
 
     def start_link() do
         supervisor = DynamicSupervisor.start_link(__MODULE__, :ok, name: __MODULE__)
-        WorkerSupervisor.start_child(4)
+        EngagementAnalysis.Supervisor.start_child(4)
         supervisor
     end
 
@@ -18,8 +18,7 @@ defmodule WorkerSupervisor do
 
     def start_child(n) do
         index = DynamicSupervisor.count_children(__MODULE__).active
-        DynamicSupervisor.start_child(__MODULE__, {Worker, index})
-
+        DynamicSupervisor.start_child(__MODULE__, {EngagementAnalysis.Worker, index})
         start_child(n - 1)
     end
 
@@ -31,7 +30,7 @@ defmodule WorkerSupervisor do
     def stop_child(n) do
         IO.puts("terminating worker")
         index = get_nb_children() - 1
-        child_pid = get_child_pid("Worker" <> Integer.to_string(index))
+        child_pid = get_child_pid("WorkerEngagement" <> Integer.to_string(index))
         DynamicSupervisor.terminate_child(__MODULE__, child_pid)
 
         stop_child(n - 1)
