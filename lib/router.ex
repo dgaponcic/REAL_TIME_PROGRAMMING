@@ -22,7 +22,7 @@ defmodule Router do
 
 
     defp define_active_tasks(range, type) do
-        res = Enum.reduce(range, [], fn index, acc -> 
+        Enum.reduce(range, [], fn index, acc -> 
             acc ++ [
                 %{
                     name: String.to_atom(type <> Integer.to_string(index)), 
@@ -33,13 +33,15 @@ defmodule Router do
         end)
     end
 
-    
-    def init(_state) do
-        range_sentiment = 0..SentimentAnalysis.Supervisor.get_nb_children() - 1
-        active_sentiment_tasks = define_active_tasks(range_sentiment, "WorkerSentiment")
+    defp sm_func(get_children, some_string) do
+        range = 0..get_children.() - 1
+        define_active_tasks(range, some_string)
+    end
 
-        range_engagement = 0..EngagementAnalysis.Supervisor.get_nb_children() - 1
-        active_engagement_tasks = define_active_tasks(range_sentiment, "WorkerEngagement")
+    def init(_state) do
+        active_sentiment_tasks = sm_func(&SentimentAnalysis.Supervisor.get_nb_children/0, "WorkerSentiment")
+        active_engagement_tasks = sm_func(&EngagementAnalysis.Supervisor.get_nb_children/0, "WorkerEngagement")
+
         {:ok, 
             %{
                 active_sentiment_tasks: active_sentiment_tasks, 
@@ -98,9 +100,9 @@ defmodule Router do
     end
 
 
-    def task_done("WorkerEngagement", index, state) do
-        worker = Enum.at(state.active_engagement_tasks, index)
-        active_tasks = update_value_tasks(state.active_engagement_tasks, index, worker, &(&1 - 1))
+    def task_done("WorkerEngagement", index, %{active_engagement_tasks: aet}=state) do
+        worker = Enum.at(aet, index)
+        active_tasks = update_value_tasks(aet, index, worker, &(&1 - 1))
         
         %{
             active_sentiment_tasks: state.active_sentiment_tasks, 
@@ -127,17 +129,17 @@ defmodule Router do
     end
 
 
-    def route2sentiment_worker(state, tweet, id) do
+    def route_worker(:sentiment, state, tweet, id) do
         active_tasks = delegate_task(state.active_sentiment_tasks, tweet, id)
         new_workers = SentimentAnalysis.Supervisor.get_nb_children()
-        old_workers = state.total_sentiment_workers
+        old_workers = state.total_sentiment_workers # == state[atoms_to_id(:sentiment, :total)]
         active_tasks = update_active_tasks(old_workers, new_workers, active_tasks, "WorkerSentiment")
 
         {active_tasks, new_workers}
     end
 
 
-    def route2engagement_worker(state, tweet, id) do
+    def route_worker(:engagement, state, tweet, id) do
         active_tasks = delegate_task(state.active_engagement_tasks, tweet, id)
         new_workers = EngagementAnalysis.Supervisor.get_nb_children()
         old_workers = state.total_engagement_workers
@@ -148,8 +150,8 @@ defmodule Router do
 
 
     def handle_cast({:route, {id, tweet}}, state) do
-        {active_sentiment_tasks, new_sentiment_workers} = route2sentiment_worker(state, tweet, id)
-        {active_engagement_tasks, new_engagement_workers} = route2engagement_worker(state, tweet, id)
+        {active_sentiment_tasks, new_sentiment_workers} = route_worker(:sentiment, state, tweet, id)
+        {active_engagement_tasks, new_engagement_workers} = route_worker(:engagement, state, tweet, id)
 
         {:noreply,  
             %{

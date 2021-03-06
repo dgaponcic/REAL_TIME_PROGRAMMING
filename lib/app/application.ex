@@ -21,6 +21,11 @@ defmodule App.Application do
             },
 
             %{
+                id: Sink,
+                start: {Sink, :start_link, []}
+            },
+
+            %{
                 id: Aggregator,
                 start: {Aggregator, :start_link, []}
             },
