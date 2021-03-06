@@ -22,21 +22,24 @@ defmodule EngagementAnalysis.Worker do
         (favourites + retweets) / followers
     end
 
-    defp print(tweet, index) do
+    defp compute(tweet, id, index) do
         {:ok, tweet} = Poison.decode(tweet)
 
         followers = tweet["message"]["tweet"]["user"]["followers_count"]
         favourites = tweet["message"]["tweet"]["user"]["favourites_count"]
         retweets = tweet["message"]["tweet"]["retweet_count"]
         score = calculate_score(followers, favourites, retweets)
-        IO.inspect("Engagement score: " <> Float.to_string(score))
+        
+        # IO.inspect("Engagement score: " <> Float.to_string(score))
+        Aggregator.add_engagement(id, score)
         Router.task_done({index, "WorkerEngagement"})
     end
 
 
-    def handle_cast({:print, tweet}, state) do
+    def handle_cast({:compute, {id, tweet}}, state) do
+        # to check least connected routing
         :timer.sleep(Enum.random(0..50))
-        print(tweet, state.index)
+        compute(tweet, id, state.index)
 
         {:noreply, state}
     end

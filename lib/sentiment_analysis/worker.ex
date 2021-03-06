@@ -24,20 +24,21 @@ defmodule SentimentAnalysis.Worker do
     end
 
 
-    defp print(tweet, index) do
+    defp compute(tweet, id, index) do
         {:ok, tweet} = Poison.decode(tweet)
         
         score = tweet
         |> get_words()
         |> get_score()
 
-        IO.inspect("Sentiment score: " <> Float.to_string(score))
+        # IO.inspect("Sentiment score: " <> Float.to_string(score))
+        Aggregator.add_sentiment(id, score)
         Router.task_done({index, "WorkerSentiment"})
     end
 
 
     def handle_tweet(tweet) do
-        GenServer.cast(__MODULE__, {:print, tweet})
+        GenServer.cast(__MODULE__, {:compute, tweet})
     end
 
 
@@ -46,9 +47,10 @@ defmodule SentimentAnalysis.Worker do
     end
 
 
-    def handle_cast({:print, tweet}, state) do
-        :timer.sleep(Enum.random(0..50))
-        print(tweet, state.index)
+    def handle_cast({:compute, {id, tweet}}, state) do
+        # to make the difference in time for computing bigger, to check least connected routing
+        :timer.sleep(Enum.random(0..50)) 
+        compute(tweet, id, state.index)
 
         {:noreply, state}
     end

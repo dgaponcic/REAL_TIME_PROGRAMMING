@@ -9,7 +9,10 @@ defmodule Router do
 
     def route(tweet) do
         TopHashtags.rcv_data(tweet.data)
-        GenServer.cast(__MODULE__, {:route, tweet.data})
+        id = UUID.uuid1()
+        Aggregator.add_tweet(id, tweet.data)
+
+        GenServer.cast(__MODULE__, {:route, {id, tweet.data}})
     end
 
 
@@ -114,18 +117,18 @@ defmodule Router do
     end
 
 
-    def delegate_task(active_tasks, tweet) do
+    def delegate_task(active_tasks, tweet, id) do
         worker = choose_worker(active_tasks)
 
         index = worker.index
         active_tasks = update_value_tasks(active_tasks, index, worker, &(&1 + 1))
-        GenServer.cast(worker.name, {:print, tweet})
+        GenServer.cast(worker.name, {:compute, {id, tweet}})
         active_tasks
     end
 
 
-    def route2sentiment_worker(state, tweet) do
-        active_tasks = delegate_task(state.active_sentiment_tasks, tweet)
+    def route2sentiment_worker(state, tweet, id) do
+        active_tasks = delegate_task(state.active_sentiment_tasks, tweet, id)
         new_workers = SentimentAnalysis.Supervisor.get_nb_children()
         old_workers = state.total_sentiment_workers
         active_tasks = update_active_tasks(old_workers, new_workers, active_tasks, "WorkerSentiment")
@@ -134,8 +137,8 @@ defmodule Router do
     end
 
 
-    def route2engagement_worker(state, tweet) do
-        active_tasks = delegate_task(state.active_engagement_tasks, tweet)
+    def route2engagement_worker(state, tweet, id) do
+        active_tasks = delegate_task(state.active_engagement_tasks, tweet, id)
         new_workers = EngagementAnalysis.Supervisor.get_nb_children()
         old_workers = state.total_engagement_workers
         active_tasks = update_active_tasks(old_workers, new_workers, active_tasks, "WorkerEngagement")
@@ -144,9 +147,9 @@ defmodule Router do
     end
 
 
-    def handle_cast({:route, tweet}, state) do
-        {active_sentiment_tasks, new_sentiment_workers} = route2sentiment_worker(state, tweet)
-        {active_engagement_tasks, new_engagement_workers} = route2engagement_worker(state, tweet)
+    def handle_cast({:route, {id, tweet}}, state) do
+        {active_sentiment_tasks, new_sentiment_workers} = route2sentiment_worker(state, tweet, id)
+        {active_engagement_tasks, new_engagement_workers} = route2engagement_worker(state, tweet, id)
 
         {:noreply,  
             %{

@@ -2,6 +2,7 @@ defmodule ServerConn do
     def start_link(url) do
         IO.puts("starting server conn")
         handle = spawn_link(__MODULE__, :get_tweet, [])
+
         {:ok, old_pid} = EventsourceEx.new(url, stream_to: handle)
 
         spawn_link(__MODULE__, :check_connection, [url, handle, old_pid])

@@ -6,6 +6,9 @@ defmodule App.Application do
         url1 = "http://localhost:4000/tweets/1"
         url2 = "http://localhost:4000/tweets/2"
 
+        # HTTPoison.start()
+        # IO.inspect("here")
+
         children = [
             %{
                 id: Registry,
@@ -15,6 +18,11 @@ defmodule App.Application do
             %{
                 id: AutoScaler,
                 start: {AutoScaler, :start_link, []}
+            },
+
+            %{
+                id: Aggregator,
+                start: {Aggregator, :start_link, []}
             },
 
             %{

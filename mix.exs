@@ -20,8 +20,14 @@ defmodule App.MixProject do
 
     defp deps do
         [
-            {:eventsource_ex, "~> 0.0.2"},
+            {:eventsource_ex, "~> 1.0.0"},
+            {:elixir_uuid, "~> 1.2"},
             {:poison, "~> 3.1"}
+            # {:eventsource_ex, git: "https://github.com/dgaponcic/eventsource_ex.git"},
         ]
     end
 end
+
+
+
+
