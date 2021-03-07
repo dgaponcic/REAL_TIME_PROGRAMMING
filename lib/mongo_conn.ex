@@ -17,8 +17,19 @@ defmodule MongoConn do
     end
 
     
+    def add_many(collection, data) do
+        GenServer.cast(__MODULE__, {:add_many, {collection, data}})
+    end
+
+
     def handle_cast({:add, {collection, data}}, state) do
         Mongo.insert_one(state.pid, collection, data)
+        {:noreply, state}
+    end
+
+    
+    def handle_cast({:add_many, {collection, data}}, state) do
+        Mongo.insert_many(state.pid, collection, data)
         {:noreply, state}
     end
 end

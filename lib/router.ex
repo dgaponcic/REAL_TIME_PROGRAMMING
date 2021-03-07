@@ -118,7 +118,7 @@ defmodule Router do
     end
 
 
-    defp route_worker(type, state, get_nb_children, tweet, id) do
+    def route_worker(type, state, get_nb_children, tweet, id) do
         active_tasks = delegate_task(state.active, tweet, id)
         new_workers = get_nb_children.()
         old_workers = state.total

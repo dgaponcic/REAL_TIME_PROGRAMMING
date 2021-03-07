@@ -20,7 +20,7 @@ defmodule Aggregator do
         GenServer.cast(__MODULE__, {:engagement, {id, score}})
     end
         
-    
+
     def add_tweet(id, tweet) do
         GenServer.cast(__MODULE__, {:tweet, {id, tweet}})
     end
@@ -82,7 +82,7 @@ defmodule Aggregator do
 
 
     def send_record(state, key, record, true) do
-        Sink.rcv_record(record)
+        Sink.rcv_record(Splitter.get_obj(record))
         Map.delete(state, key)
     end
 

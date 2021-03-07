@@ -44,8 +44,20 @@ defmodule Sink do
     end
 
 
+    def get_tweets(records) do
+        Enum.map(records, fn obj -> obj.tweet end)
+    end
+
+
+    def get_users(records) do
+        Enum.map(records, fn obj -> obj.user end)
+    end
+
+
     def handle_info(:send_batch, state) do
-        # send record to db
+        MongoConn.add_many("tweets", get_tweets(state.records))
+        MongoConn.add_many("users", get_users(state.records))
+
         IO.inspect(Kernel.length(state.records))
         timer = Process.send_after(self(), :send_batch, 1000)
         {:noreply, %{records: [], timer: timer}}
