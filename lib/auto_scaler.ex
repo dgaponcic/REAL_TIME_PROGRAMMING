@@ -11,21 +11,21 @@ defmodule AutoScaler do
     end
 
 
-    def scale("Sentiment", true, count) do
+    def scale(:sentiment, true, count) do
         SentimentAnalysis.Supervisor.start_child(count)
     end
 
 
-    def scale("Sentiment", false, count) do
+    def scale(:sentiment, false, count) do
         SentimentAnalysis.Supervisor.stop_child(count)
     end
 
-    def scale("Engagement", true, count) do
+    def scale(:engagement, true, count) do
         EngagementAnalysis.Supervisor.start_child(count)
     end
 
 
-    def scale("Engagement", false, count) do
+    def scale(:engagement, false, count) do
         EngagementAnalysis.Supervisor.stop_child(count)
     end
 
@@ -41,8 +41,8 @@ defmodule AutoScaler do
         actual_nb_workers = SentimentAnalysis.Supervisor.get_nb_children()
 
         diff = abs(desired_nb_workers - actual_nb_workers)
-        scale("Sentiment", desired_nb_workers > actual_nb_workers, diff)
-        scale("Engagement", desired_nb_workers > actual_nb_workers, diff)
+        scale(:sentiment, desired_nb_workers > actual_nb_workers, diff)
+        scale(:engagement, desired_nb_workers > actual_nb_workers, diff)
 
         schedule_work()
         {:noreply, %{counter: 0}}

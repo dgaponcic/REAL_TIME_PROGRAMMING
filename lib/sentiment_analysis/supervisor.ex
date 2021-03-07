@@ -29,9 +29,9 @@ defmodule SentimentAnalysis.Supervisor do
 
 
     def stop_child(n) do
-        IO.puts("terminating worker")
+        # IO.puts("terminating worker")
         index = get_nb_children() - 1
-        child_pid = get_child_pid("WorkerSentiment" <> Integer.to_string(index))
+        child_pid = get_child_pid("sentimentWorker" <> Integer.to_string(index))
         DynamicSupervisor.terminate_child(__MODULE__, child_pid)
 
         stop_child(n - 1)

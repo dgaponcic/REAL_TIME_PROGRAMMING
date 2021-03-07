@@ -2,10 +2,9 @@ defmodule EngagementAnalysis.Worker do
     use GenServer
 
     def start_link(index) do
-        IO.puts("starting worker engament #{index}")
-        
-        {:ok, pid} = GenServer.start_link(__MODULE__, %{index: index}, [name: :"WorkerEngagement#{index}"])
-        Registry.register(Registry.ViaTest, "WorkerEngagement" <> Integer.to_string(index), pid)
+        # IO.puts("starting worker engament #{index}")
+        {:ok, pid} = GenServer.start_link(__MODULE__, %{index: index}, [name: :"engagementWorker#{index}"])
+        Registry.register(Registry.ViaTest, "engagementWorker" <> Integer.to_string(index), pid)
         {:ok, pid}
     end
 
@@ -32,7 +31,7 @@ defmodule EngagementAnalysis.Worker do
         
         # IO.inspect("Engagement score: " <> Float.to_string(score))
         Aggregator.add_engagement(id, score)
-        Router.task_done({index, "WorkerEngagement"})
+        Router.task_done({:engagement, index})
     end
 
 
