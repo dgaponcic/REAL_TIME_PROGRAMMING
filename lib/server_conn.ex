@@ -1,4 +1,4 @@
-defmodule ServerConn do
+defmodule ServerConn do    
     def start_link(url) do
         IO.puts("starting server conn")
         handle = spawn_link(__MODULE__, :get_tweet, [])
@@ -14,7 +14,7 @@ defmodule ServerConn do
         receive do
             tweet -> 
                 AutoScaler.rcv_data()
-                Router.route(tweet)
+                TweetMiddleware.route(tweet)
         end
         get_tweet()
     end

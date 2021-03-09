@@ -18,20 +18,18 @@ defmodule SentimentAnalysis.Worker do
 
     def get_words(tweet) do
         punctuation = [",", ".", ":", "?", "!"]
-        tweet["message"]["tweet"]["text"]
+        tweet["text"]
         |> String.replace(punctuation, "")
         |> String.split(" ", trim: true)
     end
 
 
-    defp compute(tweet, id, index) do
-        {:ok, tweet} = Poison.decode(tweet)
-        
+    defp compute(tweet, id, index) do        
         score = tweet
         |> get_words()
         |> get_score()
 
-        # IO.inspect("Sentiment score: " <> Float.to_string(score))
+        # IO.inspect("Sentiment score: " <> Kernel.inspect(score))
         Aggregator.add_sentiment(id, score)
         Router.task_done({:sentiment, index})
     end

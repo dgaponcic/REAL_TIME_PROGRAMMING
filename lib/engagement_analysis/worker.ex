@@ -21,15 +21,14 @@ defmodule EngagementAnalysis.Worker do
         (favourites + retweets) / followers
     end
 
-    defp compute(tweet, id, index) do
-        {:ok, tweet} = Poison.decode(tweet)
 
-        followers = tweet["message"]["tweet"]["user"]["followers_count"]
-        favourites = tweet["message"]["tweet"]["user"]["favourites_count"]
-        retweets = tweet["message"]["tweet"]["retweet_count"]
+    defp compute(tweet, id, index) do
+        followers = tweet["user"]["followers_count"]
+        favourites = tweet["favorite_count"]
+        retweets = tweet["retweet_count"]
         score = calculate_score(followers, favourites, retweets)
-        
-        # IO.inspect("Engagement score: " <> Float.to_string(score))
+
+        # IO.inspect("Engagement score: " <> Kernel.inspect(score))
         Aggregator.add_engagement(id, score)
         Router.task_done({:engagement, index})
     end

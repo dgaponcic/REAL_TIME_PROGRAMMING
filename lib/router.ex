@@ -21,10 +21,10 @@ defmodule Router do
 
 
     def route(tweet) do
-        TopHashtags.rcv_data(tweet.data)
+        TopHashtags.rcv_data(tweet)
         id = UUID.uuid1()
-        Aggregator.add_tweet(id, tweet.data)
-        GenServer.cast(__MODULE__, {:route, {id, tweet.data}})
+        Aggregator.add_tweet(id, tweet)
+        GenServer.cast(__MODULE__, {:route, {id, tweet}})
     end
 
 
