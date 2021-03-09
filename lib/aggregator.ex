@@ -81,8 +81,23 @@ defmodule Aggregator do
     end
 
 
+    def get_obj(record) do
+        tweet = record["tweet"]
+        user = tweet["user"]
+        tweet = Map.update!(tweet, "user", fn user -> user["id"] end)
+
+        %{
+            tweet: %{
+                engagement: record["engagement"],
+                sentiment: record["sentiment"],
+                tweet: tweet
+            },
+            user: user
+        }
+    end
+
     def send_record(state, key, record, true) do
-        Sink.rcv_record(Splitter.get_obj(record))
+        Sink.rcv_record(get_obj(record))
         Map.delete(state, key)
     end
 

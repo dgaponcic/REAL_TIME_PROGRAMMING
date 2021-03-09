@@ -5,14 +5,8 @@ defmodule App.Application do
     def start(_type, _args) do
         url1 = "http://localhost:4000/tweets/1"
         url2 = "http://localhost:4000/tweets/2"
-        db_url = "mongodb://localhost:27017/tweeter"
 
         children = [
-            %{
-                id: MongoConn,
-                start: {MongoConn, :start_link, [db_url]}
-            }, 
-
             %{
                 id: Registry,
                 start: {Registry, :start_link, [:duplicate, Registry.ViaTest]}
@@ -48,6 +42,12 @@ defmodule App.Application do
                 start: {Router, :start_link, []}
             }, 
 
+            %{
+                id: TweetMiddleware,
+                start: {TweetMiddleware, :start_link, []},
+                restart: :permanent
+            },
+        
             %{
                 id: ServerConn1,
                 start: {ServerConn, :start_link, [url1]},

@@ -6,21 +6,11 @@ defmodule TopHashtags do
     end
 
 
-    defp rcv_data(tweet, false) do
-        {:ok, tweet} = Poison.decode(tweet)
-        tweet["message"]["tweet"]["entities"]["hashtags"]
+    def rcv_data(tweet) do
+        tweet["entities"]["hashtags"]
         |> Enum.each(fn hashtag -> GenServer.cast(__MODULE__, {:hashtag, hashtag["text"]}) end)
     end
 
-
-    defp rcv_data(_tweet, true) do 
-
-    end
-
-
-    def rcv_data(tweet) do
-        rcv_data(tweet, tweet =~ "panic")
-    end
 
     def update_top_hashtag(head, [], val, score) do
         {head, tail} = Enum.split_while(head, fn hashtag -> hashtag.score > score end)
