@@ -3,13 +3,14 @@ defmodule Sink do
 
     def start_link() do
         IO.puts("starting sink")
-        GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+        {:ok, pid} = Mongo.start_link(url: "mongodb://localhost:27017/tweeter")
+        GenServer.start_link(__MODULE__, %{pid: pid}, name: __MODULE__)
     end
 
 
-    def init(_state) do
+    def init(state) do
         timer = Process.send_after(self(), :send_batch, 1000)
-        {:ok, %{records: [], timer: timer}}
+        {:ok, %{records: [], timer: timer, mongo_pid: state.pid}}
     end
 
     def rcv_record(record) do
@@ -40,7 +41,7 @@ defmodule Sink do
         records = [record | state.records]
         nb_records = Kernel.length(records)
         update_state(nb_records >= 100, records, state.timer)
-        {:noreply, %{records: records, timer: state.timer}}
+        {:noreply, %{records: records, timer: state.timer, mongo_pid: state.mongo_pid}}
     end
 
 
@@ -55,12 +56,11 @@ defmodule Sink do
 
 
     def handle_info(:send_batch, state) do
-        MongoConn.add_many("tweets", get_tweets(state.records))
-        MongoConn.add_many("users", get_users(state.records))
-
         IO.inspect(Kernel.length(state.records))
+        Mongo.insert_many(state.mongo_pid, "tweets", get_tweets(state.records))
+        Mongo.insert_many(state.mongo_pid, "users", get_users(state.records))
         timer = Process.send_after(self(), :send_batch, 1000)
-        {:noreply, %{records: [], timer: timer}}
+        {:noreply, %{records: [], timer: timer, mongo_pid: state.mongo_pid}}
     end
 
 end
