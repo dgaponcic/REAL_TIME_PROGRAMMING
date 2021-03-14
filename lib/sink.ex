@@ -63,4 +63,21 @@ defmodule Sink do
         {:noreply, %{records: [], timer: timer, mongo_pid: state.mongo_pid}}
     end
 
+
+    def check_health_state() do
+        GenServer.call(__MODULE__, :heartbeat)
+    end
+
+    def check_health_state(true) do
+        :ok
+    end
+
+    def check_health_state(false) do
+        :error
+    end
+
+    def handle_call(:heartbeat, _from, state) do
+        health_state = check_health_state(Enum.random(0..50) < 40)
+        {:reply, health_state, state}
+    end
 end

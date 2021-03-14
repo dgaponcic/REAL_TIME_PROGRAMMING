@@ -23,6 +23,15 @@ defmodule App.Application do
             },
 
             %{
+                id: Buffer,
+                start: {Buffer, :start_link, []}
+            },
+            %{
+                id: HealthState,
+                start: {HealthState, :start_link, []}
+            },
+
+            %{
                 id: Aggregator,
                 start: {Aggregator, :start_link, []}
             },
