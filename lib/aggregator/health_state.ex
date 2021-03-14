@@ -22,19 +22,8 @@ defmodule HealthState do
 
 
     def handle_info(:health_check, state) do
-        health_state = get_health_state()
-
-        case health_state do
-            :ok ->
-                Buffer.free_buffer()
-
-                []  
-            _ ->
-
-        end
-            
         schedule_sink_health_check()
-        {:noreply, %{health_state: health_state}}
+        {:noreply, %{health_state: get_health_state()}}
     end
 
     def schedule_sink_health_check() do
@@ -43,18 +32,12 @@ defmodule HealthState do
     end
 
 
-    # def send(record) do
-    #     GenServer.cast(__MODULE__, {:send, record})
-    # end
+    def get_health() do
+        GenServer.call(__MODULE__, :get_health)
+    end
 
 
-    # def handle_cast({:send, record}, state) do
-    #     case state.health_state do
-    #         :ok -> Sink.rcv_record(record)
-    #         error -> Buffer.add_record(record)
-    #     end
-
-    #     {:noreply, %{health_state: state.health_state}}
-    # end
-
+    def handle_call(:get_health, _from, state) do
+        {:reply, state.health_state, %{health_state: state.health_state}}
+    end
 end

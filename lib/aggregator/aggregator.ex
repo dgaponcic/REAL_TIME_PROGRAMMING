@@ -44,7 +44,7 @@ defmodule Aggregator do
         records = handle_record("tweet", tweet, id, state)
         {:noreply, %{records: records}}
     end
-    
+
     def handle_cast({:sentiment, {id, score}}, state) do
         records = handle_record("sentiment", score, id, state)
         {:noreply, %{records: records}}
@@ -64,7 +64,7 @@ defmodule Aggregator do
 
         case get_nb_keys(new_record) do
             3 -> 
-                HealthState.send(get_obj(new_record))
+                Buffer.add_record(get_obj(new_record))
                 Map.delete(state.records, id)
             _ -> 
                 records
