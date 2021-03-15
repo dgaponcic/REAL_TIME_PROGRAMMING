@@ -45,8 +45,6 @@ defmodule Buffer do
     end
 
     def handle_info(:free_buffer, state) do    
-        IO.inspect("yay")    
-        IO.inspect(state.records_per_interval)    
         buffer = free_buffer(state.records_per_interval, state.buffer)
         schedule_free_buffer()
         {:noreply, %{buffer: buffer, records_per_interval: state.records_per_interval}}

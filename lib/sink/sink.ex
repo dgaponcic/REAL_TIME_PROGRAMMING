@@ -59,7 +59,7 @@ defmodule Sink do
     end
 
     def handle_call(:heartbeat, _from, state) do
-        health_state = check_health_state(Enum.random(0..50) < 40)
+        health_state = check_health_state(Enum.random(0..50) < 45)
         {:reply, health_state, state}
     end
 end
