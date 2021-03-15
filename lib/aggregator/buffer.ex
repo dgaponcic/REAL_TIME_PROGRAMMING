@@ -33,21 +33,22 @@ defmodule Buffer do
     end
 
 
-    def handle_info(:free_buffer, state) do
+    def free_buffer(0, buffer) do
+        buffer
+    end
+
+    def free_buffer(nb_records, buffer) do
+        IO.inspect("you have a buffer " <> Kernel.to_string(Kernel.length(buffer)))
+        to_send = Enum.take(buffer, -nb_records)
+        Sink.send_batch(to_send)
+        Enum.drop(buffer, -nb_records)
+    end
+
+    def handle_info(:free_buffer, state) do    
+        IO.inspect("yay")    
+        IO.inspect(state.records_per_interval)    
+        buffer = free_buffer(state.records_per_interval, state.buffer)
         schedule_free_buffer()
-        health = HealthState.get_health()
-
-        buffer = case health do
-            :ok ->
-                TODO
-                IO.inspect("you have a buffer " <> Kernel.to_string(Kernel.length(state.buffer)))
-                to_send = Enum.take(state.buffer, -state.records_per_interval)
-                Sink.send_batch(to_send)
-                Enum.drop(state.buffer, -state.records_per_interval)
-            :error -> 
-                state.buffer
-            end
-
         {:noreply, %{buffer: buffer, records_per_interval: state.records_per_interval}}
     end
 
