@@ -16,11 +16,22 @@ defmodule Sink do
         GenServer.cast(__MODULE__, {:send_batch, records})
     end
 
+    def insert2db({mongo_pid, records}) do
+        Mongo.insert_many(mongo_pid, "tweets", get_tweets(records))
+        Mongo.insert_many(mongo_pid, "users", get_users(records))
+    end
+
+    def time(f, args) do
+        init_time = :os.system_time(:millisecond)
+        f.(args)
+        :os.system_time(:millisecond) - init_time
+    end
 
     def handle_cast({:send_batch, records}, state) do
         IO.inspect(Kernel.length(records))
-        Mongo.insert_many(state.mongo_pid, "tweets", get_tweets(records))
-        Mongo.insert_many(state.mongo_pid, "users", get_users(records))
+        exec_time = time(&insert2db/1, {state.mongo_pid, records})
+        Monitor.new_measurement(Kernel.length(records), exec_time)
+        
         {:noreply, %{mongo_pid: state.mongo_pid}}
     end
 

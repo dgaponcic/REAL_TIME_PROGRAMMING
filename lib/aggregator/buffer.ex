@@ -11,10 +11,19 @@ defmodule Buffer do
         GenServer.cast(__MODULE__, {:add, record})
     end
 
-    
+
     def init(_) do
         schedule_free_buffer()
-        {:ok, %{buffer: []}}
+        {:ok, %{buffer: [], records_per_interval: 0}}
+    end
+
+
+    def set_records_per_interval(records_per_interval) do
+        GenServer.cast(__MODULE__, {:set_nb_records, records_per_interval})
+    end
+
+    def handle_cast({:set_nb_records, records_per_interval}, state) do
+        {:noreply, %{buffer: state.buffer, records_per_interval: records_per_interval}}
     end
 
 
@@ -30,19 +39,21 @@ defmodule Buffer do
 
         buffer = case health do
             :ok ->
+                TODO
                 IO.inspect("you have a buffer " <> Kernel.to_string(Kernel.length(state.buffer)))
-                Sink.send_batch(state.buffer)
-                []
+                to_send = Enum.take(state.buffer, -state.records_per_interval)
+                Sink.send_batch(to_send)
+                Enum.drop(state.buffer, -state.records_per_interval)
             :error -> 
                 state.buffer
             end
 
-        {:noreply, %{buffer: buffer}}
+        {:noreply, %{buffer: buffer, records_per_interval: state.records_per_interval}}
     end
 
 
     def handle_cast({:add, record}, state) do
         buffer = [record | state.buffer]
-        {:noreply, %{buffer: buffer}}
+        {:noreply, %{buffer: buffer, records_per_interval: state.records_per_interval}}
     end
 end

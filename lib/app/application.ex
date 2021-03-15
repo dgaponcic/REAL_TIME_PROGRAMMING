@@ -26,6 +26,12 @@ defmodule App.Application do
                 id: Buffer,
                 start: {Buffer, :start_link, []}
             },
+
+            %{
+                id: Monitor,
+                start: {Monitor, :start_link, []}
+            },
+
             %{
                 id: HealthState,
                 start: {HealthState, :start_link, []}
