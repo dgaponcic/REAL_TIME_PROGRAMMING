@@ -3,9 +3,9 @@ defmodule ServerConn do
         IO.puts("starting server conn")
         handle = spawn_link(__MODULE__, :get_tweet, [])
 
-        {:ok, old_pid} = EventsourceEx.new(url, stream_to: handle)
+        {:ok, pid} = EventsourceEx.new(url, stream_to: handle)
 
-        spawn_link(__MODULE__, :check_connection, [url, handle, old_pid])
+        spawn_link(__MODULE__, :check_connection, [url, handle, pid])
         {:ok, self()}
     end
 
@@ -26,7 +26,7 @@ defmodule ServerConn do
             _err ->
                 IO.puts("restarting")
                 {:ok, new_pid} = EventsourceEx.new(url, stream_to: handle)
-                check_connection(url, handle, new_pid)
+                spawn_link(__MODULE__, :check_connection, [url, handle, new_pid])
         end
     end
 end

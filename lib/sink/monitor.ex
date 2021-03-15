@@ -34,7 +34,7 @@ defmodule Monitor do
     end
 
     def new_measurement(nb_records, time) do
-        update_nb_per_interval(time > 20, nb_records > 300)
+        update_nb_per_interval(time > 30, nb_records > 150)
     end
 
     def handle_cast(:down, state) do

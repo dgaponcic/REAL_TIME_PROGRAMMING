@@ -28,7 +28,7 @@ defmodule Buffer do
 
 
     def schedule_free_buffer() do
-        interval = 1000
+        interval = 350
         Process.send_after(self(), :free_buffer, interval)
     end
 
