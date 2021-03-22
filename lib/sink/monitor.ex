@@ -12,35 +12,30 @@ defmodule Monitor do
     end
 
 
-    def update_nb_per_interval(true, true) do
-        GenServer.cast(__MODULE__, {:update, -10})
-    end
-
-    def update_nb_per_interval(true, false) do
-        GenServer.cast(__MODULE__, {:update, 10})
-    end
-
-    def update_nb_per_interval(_, _) do
-        
-    end
-
-
     def is_down() do
         GenServer.cast(__MODULE__, :down)
     end
 
+    
     def is_up() do
         GenServer.cast(__MODULE__, :up)
     end
 
+
     def new_measurement(nb_records, time) do
-        update_nb_per_interval(time > 30, nb_records > 150)
+        case {time > 30, nb_records > 150} do
+            {true, true} -> GenServer.cast(__MODULE__, {:update, -10})
+            {true, false} -> GenServer.cast(__MODULE__, {:update, 10})
+            {_, _} -> 
+        end
     end
+
 
     def handle_cast(:down, state) do
         Buffer.set_records_per_interval(0)
         {:noreply, %{records_per_interval: 0}}
     end
+
 
     def handle_cast(:up, state) do
         Buffer.set_records_per_interval(100)

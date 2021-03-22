@@ -24,22 +24,6 @@ defmodule Aggregator do
     end
 
 
-    def get_record(true, id, state) do
-        record = Map.get(state.records, id)
-        {state.records, record}
-    end
-
-    def get_record(false, id, state) do
-        records = Map.put(state.records, id, %{})
-        {records, %{}}
-    end
-
-    def get_record(id, state) do
-        has_key = Map.has_key?(state.records, id)
-        get_record(has_key, id, state)
-    end
-
-
     def handle_cast({:tweet, {id, tweet}}, state) do
         records = handle_record("tweet", tweet, id, state)
         {:noreply, %{records: records}}
@@ -55,16 +39,29 @@ defmodule Aggregator do
         {:noreply, %{records: records}}
     end
 
+    def get_updated_records(id, records) do
+        has_key = Map.has_key?(records, id)
+
+        case has_key do
+            false -> Map.put(records, id, %{})
+            _ -> records
+        end
+    end
+
+    def update_record(records, id, record_type, value) do
+        record = Map.get(records, id)
+        Map.put(record, record_type, value)
+    end
 
     def handle_record(record_type, value, id, state) do
-        {records, record} = get_record(id, state)
+        records = get_updated_records(id, state.records)
+        record = update_record(records, id, record_type, value)
 
-        new_record = add_field(record_type, value, record)
-        records = update_records(records, id, new_record)
+        records = update_record_by_id(records, id, record)
 
-        case get_nb_keys(new_record) do
+        case get_nb_keys(record) do
             3 -> 
-                Buffer.add_record(get_obj(new_record))
+                Buffer.add_record(get_obj(record))
                 Map.delete(state.records, id)
             _ -> 
                 records
@@ -72,12 +69,7 @@ defmodule Aggregator do
     end
 
 
-    def add_field(key, val, record) do
-        Map.put(record, key, val)
-    end
-
-
-    def update_records(records, key, new_record) do
+    def update_record_by_id(records, key, new_record) do
         Map.update!(records, key, fn _old_record -> new_record end)
     end
 
