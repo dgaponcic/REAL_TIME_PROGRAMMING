@@ -3,7 +3,7 @@ defmodule Sink do
 
     def start_link() do
         IO.puts("starting sink")
-        {:ok, pid} = Mongo.start_link(url: "mongodb://localhost:27017/tweeter")
+        {:ok, pid} = Mongo.start_link(url: "mongodb://mongodb:27017/tweeter")
         GenServer.start_link(__MODULE__, %{mongo_pid: pid}, name: __MODULE__)
     end
 
@@ -60,7 +60,9 @@ defmodule Sink do
     end
 
     def handle_call(:health_check, _from, state) do
-        health_state = check_health_state(Enum.random(0..50) < 45)
+        # normal distribution, random if the health state is ok or not
+        health_state = check_health_state(:rand.normal(50, 200) > 40)
+
         {:reply, health_state, state}
     end
 end

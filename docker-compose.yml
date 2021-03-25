@@ -1,0 +1,29 @@
+version: '3.6'
+services:
+
+
+  server:
+    image : alexburlacu/rtp-server:faf18x
+    container_name: server
+    # volumes:
+    # - /home/barry/mongodb/database:/data/db
+
+  mongodb:
+    image : mongo
+    container_name: mongodb
+    # volumes:
+    # - /home/barry/mongodb/database:/data/db
+    ports:
+    - 27017:27017
+
+
+  
+
+  elixir:
+    build: 
+      context: app
+
+    depends_on:
+      - mongodb
+      - server
+

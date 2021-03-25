@@ -3,8 +3,8 @@ defmodule App.Application do
     
     @impl true
     def start(_type, _args) do
-        url1 = "http://localhost:4000/tweets/1"
-        url2 = "http://localhost:4000/tweets/2"
+        url1 = "server:4000/tweets/1"
+        url2 = "server:4000/tweets/2"
 
         children = [
             %{
