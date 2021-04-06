@@ -72,8 +72,12 @@ defmodule App.Application do
                 id: TopHashtags,
                 start: {TopHashtags, :start_link, []},
             },
-        ]
 
+            %{
+                id: BrokerConn,
+                start: {BrokerConn, :start_link, [8081]},
+            },
+        ]
 
         opts = [strategy: :one_for_one, max_restarts: 100, name: App.Supervisor]
 
