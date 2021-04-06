@@ -3,6 +3,9 @@ defmodule BrokerConn do
 
   	def start_link(port) do
 		{:ok, socket} = TCPServer.connect('broker', 8082)
+		connMsg = %TypedMsgs.ConnectPubMsg{topics: ["tweets", "users"]}
+		data = TypedMsgs.Serializable.serialize connMsg
+		TCPServer.send(socket, data)
     	GenServer.start_link(__MODULE__, %{socket: socket}, name: __MODULE__)
   	end
 
@@ -15,8 +18,9 @@ defmodule BrokerConn do
   	end
 
   	def handle_cast({:send, {topic, message}}, state) do
-		data = Poison.encode!(%{type: "data", data: %{topic: topic, content: message}})
-
+		# data = Poison.encode!(%{type: "data", params: %{topic: topic}, body: %{content: message}})
+		msg = %TypedMsgs.DataMsg{topic: topic, content: message}
+		data = TypedMsgs.Serializable.serialize msg
 		TCPServer.send(state.socket, data)
     	{:noreply, state}
   	end

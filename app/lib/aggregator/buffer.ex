@@ -37,6 +37,10 @@ defmodule Buffer do
         buffer
     end
 
+    def free_buffer(nb_records, []) do
+        []
+    end
+
     def free_buffer(nb_records, buffer) do
         IO.inspect("you have a buffer " <> Kernel.to_string(Kernel.length(buffer)))
         to_send = Enum.take(buffer, -nb_records)

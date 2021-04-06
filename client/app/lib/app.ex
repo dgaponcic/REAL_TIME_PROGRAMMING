@@ -1,7 +1,8 @@
 defmodule App do
     def open() do
         {:ok, socket} = TCPServer.connect('broker', 8082)
-        data = Poison.encode!(%{type: "subscribe", data: %{topic: "users"}})
+        msg = %TypedMsgs.SubscribeMsg{topic: "users"}
+		data = TypedMsgs.Serializable.serialize msg
         TCPServer.send(socket, data)
         socket
     end

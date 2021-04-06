@@ -18,7 +18,7 @@ defmodule KVServer do
     def serve(client) do
         data = TCPServer.read(client)
         IO.inspect({"read", data})
-        Dispatcher.dispatch(client, data)
+        Dispatcher.deserialize(client, data)
         serve(client)
     end
 end

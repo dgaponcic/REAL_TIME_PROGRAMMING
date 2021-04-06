@@ -16,6 +16,7 @@ defmodule Sink do
         GenServer.cast(__MODULE__, {:send_batch, records})
     end
 
+
     def insert_many({mongo_pid, records}) do
         Mongo.insert_many(mongo_pid, "tweets", get_tweets(records))
         Mongo.insert_many(mongo_pid, "users", get_users(records))
