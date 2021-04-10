@@ -16,7 +16,7 @@ defmodule TCPServer do
         size = data 
 		|> String.length()
 		|> Integer.to_string()
-		|>  String.pad_leading(5, "0")
+		|> String.pad_leading(5, "0")
 
         :gen_tcp.send(socket, size <> data)
     end
@@ -31,7 +31,7 @@ defmodule TCPServer do
         end
     end
 
-     defp read(true, client, acc, size) do
+    defp read(true, client, acc, size) do
         to_read = get_size(size, String.length(acc))
         {_status, data} = :gen_tcp.recv(client, to_read)
         new_data = acc <> data

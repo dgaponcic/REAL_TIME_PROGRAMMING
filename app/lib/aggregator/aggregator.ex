@@ -63,8 +63,8 @@ defmodule Aggregator do
             3 -> 
                 obj = get_obj(record)
                 Buffer.add_record(obj)
-                BrokerConn.send("users", obj.user)
-                BrokerConn.send("tweets", obj.tweet)
+                # BrokerConn.send("users", obj.user)
+                # BrokerConn.send("tweets", obj.tweet)
                 Map.delete(state.records, id)
             _ -> 
                 records

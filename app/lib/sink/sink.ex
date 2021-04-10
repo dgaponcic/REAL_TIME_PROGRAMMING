@@ -3,7 +3,7 @@ defmodule Sink do
 
     def start_link() do
         IO.puts("starting sink")
-        {:ok, pid} = Mongo.start_link(url: "mongodb://mongodb:27017/tweeter")
+        {:ok, pid} = Mongo.start_link(url: "mongodb://mongo1:27017,mongo2:27017,mongo3:27017/tweeter?replicaSet=rs0")
         GenServer.start_link(__MODULE__, %{mongo_pid: pid}, name: __MODULE__)
     end
 

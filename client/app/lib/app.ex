@@ -1,7 +1,7 @@
 defmodule App do
     def open() do
         {:ok, socket} = TCPServer.connect('broker', 8082)
-        msg = %TypedMsgs.SubscribeMsg{topic: "users"}
+        msg = %TypedMsgs.SubscribeMsg{topic: "tweets"}
 		data = TypedMsgs.Serializable.serialize msg
         TCPServer.send(socket, data)
         socket

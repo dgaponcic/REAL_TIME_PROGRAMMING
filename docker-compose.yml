@@ -1,18 +1,58 @@
 version: '3.6'
 services:
 
-    mongodb:
-        image : mongo
-        container_name: mongodb
+    # mongodb:
+    #     image : mongo
+    #     container_name: mongodb
+    #     ports:
+    #         - 27017:27017
+
+
+    mongo1:
+        hostname: mongo1
+        container_name: mongo1
+        image: mongo
         ports:
             - 27017:27017
-
+        restart: always
+        entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+    mongo2:
+        hostname: mongo2
+        container_name: mongo2
+        image: mongo
+        ports:
+            - 27018:27017
+        restart: always
+        entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+    mongo3:
+        hostname: mongo3
+        container_name: mongo3
+        image: mongo
+        ports:
+            - 27019:27017
+        restart: always
+        entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+        
 
     server:
         image : alexburlacu/rtp-server:faf18x
         container_name: server
 
-    
+
+    cdc:
+        build:
+            context: cdc
+        depends_on:
+            - mongo1
+            - mongo2
+            - mongo3
+            - server
+        restart: always
+        cap_add:
+            - NET_ADMIN
+
+
+
     broker:
         build: 
             context: broker
@@ -24,7 +64,9 @@ services:
         build: 
             context: app
         depends_on:
-            - mongodb
+            - mongo1
+            - mongo2
+            - mongo3
             - server
         cap_add:
             - NET_ADMIN
