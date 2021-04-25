@@ -19,7 +19,7 @@ defmodule BrokerConn do
 
   	def handle_cast({:send, {topic, message}}, state) do
 		# data = Poison.encode!(%{type: "data", params: %{topic: topic}, body: %{content: message}})
-		msg = %TypedMsgs.DataMsg{topic: topic, content: message}
+		msg = %TypedMsgs.DataMsg{topic: topic, content: message, is_persistent: true}
 		data = TypedMsgs.Serializable.serialize msg
 		TCPServer.send(state.socket, data)
     	{:noreply, state}

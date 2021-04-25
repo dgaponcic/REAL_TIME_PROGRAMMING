@@ -3,7 +3,7 @@ defmodule TypedMsgs.SubscribeMsg do
 end
 
 defmodule TypedMsgs.DataMsg do
-    defstruct [:topic, :content]
+    defstruct [:topic, :content, :is_persistent]
 end
 
 defmodule TypedMsgs.ConnectPubMsg do
@@ -25,9 +25,11 @@ end
 
 defimpl TypedMsgs.Serializable, for: TypedMsgs.DataMsg do
     def serialize(msg) do
-        Poison.encode!(%{type: "data", params: %{topic: msg.topic}, body: %{content: msg.content}})
+        IO.inspect({"per3", msg.is_persistent})
+        Poison.encode!(%{type: "data", params: %{topic: msg.topic, is_persistent: msg.is_persistent}, body: %{content: msg.content}})
     end
 end
+
 
 defimpl TypedMsgs.Serializable, for: TypedMsgs.SubscribeMsg do
     def serialize(msg) do
