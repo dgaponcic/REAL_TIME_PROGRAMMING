@@ -1,6 +1,6 @@
 defmodule TCPServer do
     def connect(host, port) do
-        :gen_tcp.connect('broker', 8082, [:binary, active: false])
+        :gen_tcp.connect('localhost', 8082, [:binary, active: false])
     end
 
 
