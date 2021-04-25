@@ -14,11 +14,17 @@ defmodule KVServer do
     	loop_acceptor(socket)
   	end
 
+	def serve(:error, _client) do
+		
+	end
+
+	def serve(data, client) do
+		Dispatcher.deserialize(client, data)
+        serve(client)
+	end
 
     def serve(client) do
         data = TCPServer.read(client)
-        # IO.inspect({"read", data})
-        Dispatcher.deserialize(client, data)
-        serve(client)
+		serve(data, client)
     end
 end

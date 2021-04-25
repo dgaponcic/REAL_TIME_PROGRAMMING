@@ -2,14 +2,17 @@ defmodule TypedMsgs.SubscribeMsg do
     defstruct [:topic, :client]
 end
 
+defmodule TypedMsgs.UnsubscribeMsg do
+    defstruct [:topic, :client]
+end
+
 defmodule TypedMsgs.DataMsg do
-    defstruct [:topic, :content, :client]
+    defstruct [:topic, :content, :is_persistent]
 end
 
 defmodule TypedMsgs.ConnectPubMsg do
     defstruct [:topics, :client]
 end
-
 
 
 defprotocol TypedMsgs.Serializable do
@@ -25,7 +28,6 @@ end
 
 
 
-
 defprotocol TypedMsgs.Acceptable do
     @spec accept(t) :: TypedMsgs.t()
     def accept(msg)
@@ -33,20 +35,44 @@ end
 
 defimpl TypedMsgs.Acceptable, for: TypedMsgs.SubscribeMsg do
     def accept(msg) do
-        Registry.register(Registry.ViaTest, msg.topic, msg.client)
+        is_topic = Enum.member?(Register.get("topics"), msg.topic)
+        if is_topic do
+            Register.add(msg.topic, msg.client)
+        end
+    end
+end
+
+defimpl TypedMsgs.Acceptable, for: TypedMsgs.UnsubscribeMsg do
+    def accept(msg) do
+        is_topic = Enum.member?(Register.get("topics"), msg.topic)
+        if is_topic do
+            clients = Register.get(msg.topic) 
+            updated_clients = List.delete(clients, msg.client)
+            Register.replace(msg.topic, updated_clients)
+        end
     end
 end
 
 defimpl TypedMsgs.Acceptable, for: TypedMsgs.DataMsg do
     def accept(msg) do
-        clients = Registry.lookup(Registry.ViaTest, msg.topic)
-        data = TypedMsgs.Serializable.serialize msg
-        Enum.each(clients, fn {pid, port} -> TCPServer.send(port, data) end)
+        if msg.is_persistent do
+            id = MongoConnection.insert(msg)
+            clients = Register.get(msg.topic)
+            ttl = 3
+            Sender.send_persistent(msg, clients, id, ttl)
+        else
+            Sender.send(msg)
+        end
     end
 end
 
 defimpl TypedMsgs.Acceptable, for: TypedMsgs.ConnectPubMsg do
-    def accept(msg) do
-        
+    def accept(msg) do    
+        Enum.each(msg.topics, fn topic -> 
+            is_member = Enum.member?(Register.get("topics"), topic)
+            if not is_member do
+                Register.add("topics", topic) 
+            end
+        end)
     end
 end

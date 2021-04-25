@@ -43,7 +43,11 @@ defmodule TCPServer do
     end
 
     def read(socket) do
-        {_status, size} = :gen_tcp.recv(socket, 5)
-        read(true, socket, "", String.to_integer(size))
+        try do
+            {_status, size} = :gen_tcp.recv(socket, 5)
+            read(true, socket, "", String.to_integer(size))
+        rescue 
+            _ -> :error
+        end
     end
 end

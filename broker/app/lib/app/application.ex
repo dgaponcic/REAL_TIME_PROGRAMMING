@@ -5,8 +5,23 @@ defmodule App.Application do
   	def start(_type, _args) do
     	children = [
 			%{
-            	id: Registry,
-            	start: {Registry, :start_link, [:duplicate, Registry.ViaTest]}
+            	id: QueueReleaser,
+            	start: {QueueReleaser, :start_link, []}
+       		},
+
+			%{
+            	id: Register,
+            	start: {Register, :start_link, []}
+       		},
+			
+			%{
+            	id: Queue,
+            	start: {Queue, :start_link, []}
+       		},
+
+			%{
+            	id: MongoConnection,
+            	start: {MongoConnection, :start_link, []}
        		},
 		
         	Supervisor.child_spec({Task, fn -> KVServer.accept(8082) end}, restart: :permanent)
