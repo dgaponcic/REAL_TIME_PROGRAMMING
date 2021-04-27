@@ -7,12 +7,13 @@ defmodule Sender do
             try do
                 TCPServer.send(port, data)
             rescue
-                _ -> IO.inspect("oops")
+                _ -> IO.inspect("can't send")
             end
         end)
     end
 
-    def remove_client(with_error) do
+
+    def remove_unreachable_clients(with_error) do
         topics = Register.get("topics")
         Enum.each(topics, fn topic ->
             clients = Register.get(topic)
@@ -23,13 +24,14 @@ defmodule Sender do
         end)
     end
 
+
     def update(with_error, ttl, id) do
         cond do
             length(with_error) > 0 and ttl > 0 ->
                 Queue.add(id, with_error, ttl - 1)
 
             length(with_error) > 0 ->
-                remove_client(with_error)
+                remove_unreachable_clients(with_error)
                 MongoConnection.delete(id)
 
             true ->
@@ -53,7 +55,7 @@ defmodule Sender do
     def send_persistent(msg, clients, id, ttl) do
         data = TypedMsgs.Serializable.serialize msg
         with_error = send_persistent(clients, data)
-        IO.inspect({"with error", with_error})
+        IO.inspect({clients, with_error})
         update(with_error, ttl, id)
     end
 end

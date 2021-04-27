@@ -24,7 +24,10 @@ defmodule App.Application do
             	start: {MongoConnection, :start_link, []}
        		},
 		
-        	Supervisor.child_spec({Task, fn -> KVServer.accept(8082) end}, restart: :permanent)
+			%{
+				id: KVServer,
+				start: {KVServer, :accept, [8082]}
+			}
     	]
 
     	opts = [strategy: :one_for_one, name: App.Supervisor]

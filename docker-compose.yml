@@ -1,11 +1,9 @@
 version: '3.6'
 services:
 
-    # mongodb:
-    #     image : mongo
-    #     container_name: mongodb
-    #     ports:
-    #         - 27017:27017
+    mongo_broker:
+        image : mongo
+        container_name: mongo_broker
 
 
     mongo1:
@@ -16,6 +14,8 @@ services:
             - 27017:27017
         restart: always
         entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+
+
     mongo2:
         hostname: mongo2
         container_name: mongo2
@@ -24,6 +24,8 @@ services:
             - 27018:27017
         restart: always
         entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+
+
     mongo3:
         hostname: mongo3
         container_name: mongo3
@@ -52,10 +54,13 @@ services:
             - NET_ADMIN
 
 
-
     broker:
-        build: 
+        depends_on: 
+            - mongo_broker
+        build:
             context: broker
+        ports:
+            - 8082:8082
         cap_add:
             - NET_ADMIN
 
@@ -63,19 +68,12 @@ services:
     elixir:
         build: 
             context: app
+        restart: always
+
         depends_on:
             - mongo1
             - mongo2
             - mongo3
             - server
-        cap_add:
-            - NET_ADMIN
-
-
-    client:
-        build: 
-            context: client
-        depends_on: 
-            - broker
         cap_add:
             - NET_ADMIN
